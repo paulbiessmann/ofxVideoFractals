@@ -66,7 +66,7 @@ void ofApp::setup(){
     bEnd = false;
     bPause = false;
     
-    useVid = false;
+    useVid = false; //should be renamed
 
 }
 
@@ -101,13 +101,7 @@ void ofApp::draw(){
 
     recordFbo.begin();
     ofClear(0,0,0,255);
-    
-	//ofSetHexColor(0xFFFFFF);
 
-    
-    
-
-   // ofSetHexColor(0x000000);
     // get target movie as pixel
     ofPixels & pixels = fractalMovie.getPixels();
 
@@ -131,9 +125,10 @@ void ofApp::draw(){
                     unsigned char r = pixels[(j * vidWidth + i)*nChannels];
                     float val = 1 - ((float)r / 255.0f);
                     ofSetColor(pixels.getColor(i, j));
-                    //ofDrawRectangle(i, j, fractWidth*val, stepSize*val);
-                    //ofSetColor(i, j, 100);
-                    ofDrawBox(i,j, 0, fractWidth*val, stepSize*val, -val* 300 );
+                    ofDrawRectangle(i-(fractWidth*val/2), j-(stepSize*val/2), fractWidth*val , stepSize*val);
+                    
+                   // ofDrawCircle(i-(fractWidth*val/2), j-(stepSize*val/2), fractWidth*val );
+                    //ofDrawBox(i,j, 0, fractWidth*val, stepSize*val, -val* 300 );
                 }
             }
         }
@@ -144,6 +139,10 @@ void ofApp::draw(){
                 fractalMovie.draw(0,0);
             }
             else{
+                for (int pi=0; pi< positions.size(); pi++){
+                    
+                    fractalMovie.draw( positions[pi].x, positions[pi].y, sizes[pi].x , sizes[pi].y);
+                }
                 for (int i = 4; i < vidWidth ; i+=fractWidth){
                     for (int j = 4; j < vidHeight; j+=stepSize){
 
@@ -153,7 +152,7 @@ void ofApp::draw(){
                         fractColor = pixels.getColor(i, j);
 
                         ofSetColor(fractColor);
-                        fractalMovie.draw( i,  j, fractWidth, stepSize);
+                        //fractalMovie.draw( i,  j, fractWidth, stepSize);
                         
                         
                         for (int pi=0; pi< positions.size(); pi++){
@@ -163,13 +162,6 @@ void ofApp::draw(){
                         
                     }
                 }
-//
-//                for (int pi=0; pi< positions.size(); pi++){
-//                    //float stepSizeRatio =   stepSize / fractWidth;
-//
-//                    //ofSetColor(fractColor);
-//                    fractalMovie.draw( positions[pi].x, positions[pi].y, sizes[pi].x , sizes[pi].y);
-//                }
             }
         }
 
