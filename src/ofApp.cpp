@@ -3,14 +3,13 @@
 float fps = 25;
 
 float scene0 = 0; //frames, Sänger in Jumpsuit
-float scene1 = 975; // Oszillation beginnt
-float scene2 = 1650; // zoomen beginnt
-float scene3 = 2925; // Zoomen ende, aber mit Fleisch
-float scene4 = 3450; // Schnittfleisch
+float scene1 = 25; // zoomen beginnt
+float scene2 = 975; // Zoomen ende, aber mit Fleisch
+float scene3 = 1275; // Schnittfleisch
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-	ofBackground(5);
+	ofBackground(255);
 	ofSetVerticalSync(true);
 	frameByframe = false;
     
@@ -22,8 +21,12 @@ void ofApp::setup(){
 	fractalMovie.load("movies/Winkhler-Profilbild-Nah.mp4");
 	fractalMovie.setLoopState(OF_LOOP_NORMAL);
 	fractalMovie.play();
+    fractalMovie.setPaused(true);
     
-    stepSize = 200;
+    maxStep = 520; //520
+    minStep = 25;
+    stepSize = maxStep;
+    stepFloat = stepSize;
     
     
     positions.resize(8);
@@ -62,7 +65,7 @@ void ofApp::setup(){
     recordFboFlip.allocate(ofGetWidth(), ofGetHeight(), GL_RGB);
     bRecording = false;
     
-    //keyReleased('r');
+    keyReleased('r');
     bEnd = false;
     bPause = false;
     
@@ -72,12 +75,25 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    fractalMovie.update();
+        //fractalMovie.setSpeed(vidRecorder.sp)
     
     if(!bPause){
         recordedFrame = vidRecorder.getNumVideoFramesRecorded();// + vidRecorder.getVideoQueueSize();
+        fractalMovie.nextFrame();
     }
+    fractalMovie.update();
+
     
+    if(recordedFrame > scene1 && recordedFrame < scene2 && (int)recordedFrame % 2 == 0){
+       // stepFloat = ofMap(recordedFrame, scene1, scene2, maxStep, minStep);
+        stepSize *= 0.9999;
+        if(stepSize < minStep){ stepSize=minStep;}
+    }
+    if(recordedFrame > scene2){
+        stepSize = abs(sin(recordedFrame * 0.01)) * 10 + minStep;
+    }
+    //stepSize = (int)stepFloat;
+
     
     recordFbo.getTexture().readToPixels(recordPixels);
     if(bRecording){
@@ -100,10 +116,13 @@ void ofApp::draw(){
 
 
     recordFbo.begin();
-    ofClear(0,0,0,255);
+    ofClear(255,255,255,255);
+    ofSetBackgroundColor(255,255,255);
 
     // get target movie as pixel
-    ofPixels & pixels = fractalMovie.getPixels();
+    pixels = fractalMovie.getPixels();
+
+    ofLog(OF_LOG_NOTICE, "stepsize %d", stepSize);
 
     
     if(!bPause){
@@ -127,7 +146,7 @@ void ofApp::draw(){
                     ofSetColor(pixels.getColor(i, j));
                     ofDrawRectangle(i-(fractWidth*val/2), j-(stepSize*val/2), fractWidth*val , stepSize*val);
                     
-                   // ofDrawCircle(i-(fractWidth*val/2), j-(stepSize*val/2), fractWidth*val );
+                    //ofDrawCircle(i-(fractWidth*val/2), j-(stepSize*val/2), fractWidth*val );
                     //ofDrawBox(i,j, 0, fractWidth*val, stepSize*val, -val* 300 );
                 }
             }
@@ -135,31 +154,50 @@ void ofApp::draw(){
         else{    //      try something else
             
             if ( stepSize < 8 ){
-                ofSetColor(200);
+                ofSetColor(255);
                 fractalMovie.draw(0,0);
             }
             else{
-                for (int pi=0; pi< positions.size(); pi++){
-                    
-                    fractalMovie.draw( positions[pi].x, positions[pi].y, sizes[pi].x , sizes[pi].y);
+                if(recordedFrame <= scene1){
+                    for (int pi=0; pi< positions.size(); pi++){
+                        
+                        fractalMovie.draw( positions[pi].x, positions[pi].y, sizes[pi].x , sizes[pi].y);
+                    }
                 }
                 for (int i = 4; i < vidWidth ; i+=fractWidth){
                     for (int j = 4; j < vidHeight; j+=stepSize){
 
-                        ofLog(OF_LOG_NOTICE, "stepsize %d", stepSize);
                         
                         ofColor fractColor ;
                         fractColor = pixels.getColor(i, j);
+                        fractColor += 100;
 
                         ofSetColor(fractColor);
-                        //fractalMovie.draw( i,  j, fractWidth, stepSize);
                         
-                        
-                        for (int pi=0; pi< positions.size(); pi++){
-                            if ( i > positions[pi].x && i < positions[pi].x + sizes[pi].x && j > positions[pi].y  && j < positions[pi].y + sizes[pi].y)
-                            fractalMovie.draw( i, j, fractWidth , stepSize);
+//                        if(recordedFrame > 3*scene2/4){
+//                            fractalMovie.draw( i,  j, fractWidth, stepSize);
+//                        }
+                        if (recordedFrame > scene1){
+                            float picFact = stepSize/maxStep;
+                            float bereich = 50 * maxStep/stepSize ;
+                            for (int pi = 0; pi < positions.size(); pi++){
+                                if ( i > positions[pi].x - bereich && i < positions[pi].x + fractWidth + bereich && j > positions[pi].y - bereich && j < positions[pi].y + stepSize + bereich)
+                                    
+                                    fractalMovie.draw( i,  j, fractWidth, stepSize);
+                                    
+                                    for(int k=0; k<fractWidth; k += sizes[pi].x * picFact){
+                                        for(int m=0; m < stepSize; m += sizes[pi].y * picFact){
+                                            
+                                            fractColor = pixels.getColor(positions[pi].x+k, positions[pi].y+m);
+                                            fractColor += 100;
+                                            
+                                            ofSetColor(fractColor);
+
+                                            fractalMovie.draw( positions[pi].x+k, positions[pi].y+m, sizes[pi].x * picFact , sizes[pi].y * picFact );
+                                        }
+                                    }
+                            }
                         }
-                        
                     }
                 }
             }
@@ -172,24 +210,24 @@ void ofApp::draw(){
     recordFbo.draw(0,0, fullWidth/4, fullHeight/4);
 
     
-    if(recordedFrame - vidRecorder.getVideoQueueSize() > scene4 + 50 && vidRecorder.getVideoQueueSize() < 5 ){
+    if(recordedFrame - vidRecorder.getVideoQueueSize() > scene3 + 50 ){
         keyReleased('r');
     }
 
 
 
 
-    ofSetHexColor(0x000000);
-	ofDrawBitmapString("press f to change",20,320);
-    if(frameByframe) ofSetHexColor(0xCCCCCC);
-    ofDrawBitmapString("mouse speed position",20,340);
-    if(!frameByframe) ofSetHexColor(0xCCCCCC); else ofSetHexColor(0x000000);
-    ofDrawBitmapString("keys <- -> frame by frame " ,190,340);
-    ofSetHexColor(0x000000);
-
-    ofDrawBitmapString("frame: " + ofToString(fractalMovie.getCurrentFrame()) + "/"+ofToString(fractalMovie.getTotalNumFrames()),20,380);
-    ofDrawBitmapString("duration: " + ofToString(fractalMovie.getPosition()*fractalMovie.getDuration(),2) + "/"+ofToString(fractalMovie.getDuration(),2),20,400);
-    ofDrawBitmapString("speed: " + ofToString(fractalMovie.getSpeed(),2),20,420);
+//    ofSetHexColor(0x000000);
+//    ofDrawBitmapString("press f to change",20,320);
+//    if(frameByframe) ofSetHexColor(0xCCCCCC);
+//    ofDrawBitmapString("mouse speed position",20,340);
+//    if(!frameByframe) ofSetHexColor(0xCCCCCC); else ofSetHexColor(0x000000);
+//    ofDrawBitmapString("keys <- -> frame by frame " ,190,340);
+//    ofSetHexColor(0x000000);
+//
+//    ofDrawBitmapString("frame: " + ofToString(fractalMovie.getCurrentFrame()) + "/"+ofToString(fractalMovie.getTotalNumFrames()),20,380);
+//    ofDrawBitmapString("duration: " + ofToString(fractalMovie.getPosition()*fractalMovie.getDuration(),2) + "/"+ofToString(fractalMovie.getDuration(),2),20,400);
+//    ofDrawBitmapString("speed: " + ofToString(fractalMovie.getSpeed(),2),20,420);
 
     if(fractalMovie.getIsMovieDone()){
         ofSetHexColor(0xFF0000);
@@ -253,7 +291,7 @@ void ofApp::mouseMoved(int x, int y ){
         float speed = (2 * pct - 1) * 5.0f;
        // fractalMovie.setSpeed(speed);
         
-        stepSize = abs(speed * 100) + 2;
+       // stepSize = abs(speed * 100) + 2;
 	}
 }
 

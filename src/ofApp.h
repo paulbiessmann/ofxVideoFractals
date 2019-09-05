@@ -34,11 +34,15 @@ class ofApp : public ofBaseApp{
     ofVideoPlayer   targetMovie;
     
     int stepSize = 1;
+    float stepFloat;
+    float maxStep;
+    float minStep;
     bool useVid = false;
     
     vector <ofVec2f> positions;
     vector <ofVec2f> sizes;
     
+    ofPixels  pixels;
     
     /* Recording */
     ofxVideoRecorder    vidRecorder;
