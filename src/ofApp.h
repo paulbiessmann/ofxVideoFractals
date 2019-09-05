@@ -40,6 +40,9 @@ class ofApp : public ofBaseApp{
     float minStep;
     bool useVid = false;
     
+    int growing = 20;
+    ofVec2f center;
+    
     float vidRatio;
     int vidWidth;
     int vidHeight;

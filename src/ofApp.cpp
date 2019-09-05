@@ -16,6 +16,8 @@ void ofApp::setup(){
 	ofSetVerticalSync(true);
 	frameByframe = false;
     
+    ofEnableAlphaBlending();
+    
     ofDisableArbTex();
 
 	// Uncomment this to show movies with alpha channels
@@ -26,13 +28,14 @@ void ofApp::setup(){
 	targetMovie.play();
     targetMovie.setPaused(true);
     
-    fractalMovie.load("movies/singlePers.mov");
+    fractalMovie.setPixelFormat(OF_PIXELS_RGBA);
+    fractalMovie.load("movies/singlePers_cut.mov");
     fractalMovie.setLoopState(OF_LOOP_NORMAL);
     fractalMovie.play();
     fractalMovie.setPaused(true);
     
     maxStep = 520; //520
-    minStep = 8;
+    minStep = 70;
     stepSize = maxStep + 1;
     stepFloat = stepSize;
     fractWidth = maxStep;
@@ -42,6 +45,9 @@ void ofApp::setup(){
     vidWidth = targetMovie.getWidth();
     vidHeight = targetMovie.getHeight();
    
+    
+    center.x = fullWidth/2;
+    center.y = fullHeight/2;
     
     vidRatio = (float) vidWidth / (float) vidHeight;
     
@@ -103,18 +109,69 @@ void ofApp::update(){
         
         if(recordedFrame > scene1 && recordedFrame < scene2 && (int)recordedFrame % 1 == 0){
            // stepFloat = ofMap(recordedFrame, scene1, scene2, maxStep, minStep);
-            stepFloat *=   0.998;
+            stepFloat *=   0.9974;
             //stepFloat = abs(sin(recordedFrame * 0.1)) * 10 + minStep;
             
             if(stepFloat < minStep){ stepFloat=minStep;}
             
         }
-        if(recordedFrame > scene1 && recordedFrame < scene2 && (int)recordedFrame % 25 == 0){
-            positions.push_back(ofVec2f(ofRandom(0, fullWidth - 300),ofRandom(0, fullHeight - 300)));
-            int randWidth = ofRandom(200, 500);
-            int randHeight = randWidth / vidRatio;
-            sizes.push_back(ofVec2f(randWidth, randHeight));
+        
+        
+        if(recordedFrame > scene1 && (int)recordedFrame % 5 == 0){
+            growing--;
+            
+            if(growing<2){growing = 1;}
+            
+            
         }
+        if(recordedFrame > scene1 && recordedFrame < scene3 && (int)recordedFrame % 3 == 0){
+            
+            int repetitions = 1;
+            if(recordedFrame > scene3/4){
+                repetitions = 10;
+            }
+            if(recordedFrame > scene3/2){
+                repetitions = 30;
+            }
+            if(recordedFrame > scene2){
+                repetitions = 1;
+            }
+            for(int i=0; i<repetitions; i++){
+                int posX = ofRandom(0, fullWidth - 100);
+                int posY = ofRandom(0, fullHeight - 100);
+                
+                posX = center.x - (posX - center.x);
+                posY = center.y - (posY - center.y);
+
+    //            if(posX < center.x){posX = ofRandom(0, 1000);}
+    //            else{posX = ofRandom(fullWidth-1000, fullWidth);}
+                
+    //            if(posY < center.y){posY = ofRandom(0, 500);}
+    //            else{posY = ofRandom(fullHeight-100, fullHeight);}
+
+                
+                positions.push_back(ofVec2f(posX, posY));
+                int randWidth = ofRandom(300, 800);
+                int randHeight = randWidth / vidRatio;
+                sizes.push_back(ofVec2f(randWidth, randHeight));
+            }
+            
+        }
+        
+        
+        if(recordedFrame > scene1 && recordedFrame < scene2 ){
+            for(int i=0; i<positions.size(); i++){
+                float dirX =  (center.x - positions[i].x )  * 0.001;
+                float dirY =  (center.y - positions[i].y )  * 0.001;
+                
+                positions[i].x += dirX;
+                positions[i].y += dirY;
+                
+                
+            }
+        }
+        
+        
         if(recordedFrame > scene2){
             
         }
@@ -146,7 +203,7 @@ void ofApp::draw(){
 
     recordFbo.begin();
     ofClear(255,255,255,255);
-    ofSetBackgroundColor(255,255,255);
+    ofSetBackgroundColor(255,255,255,255);
 
 
 
@@ -177,11 +234,11 @@ void ofApp::draw(){
                 }
             }
         }
-        else{    //      try something else
-            
+        else if(0){    //      try something else
+        
             if ( stepSize < 8 ){
                 ofSetColor(255);
-                fractalMovie.draw(0,0);
+                targetMovie.draw(0,0);
             }
             else{
                 if(recordedFrame <= scene1){
@@ -246,7 +303,53 @@ void ofApp::draw(){
                 }
             }
         }
+        
+        if ( stepSize < 8 ){
+            ofSetColor(255);
+            targetMovie.draw(0,0);
+        }
+        else{
+//            if(recordedFrame <= scene1){
+//                for (int pi=0; pi< positions.size(); pi++){
+//                    fractalMovie.draw( positions[pi].x, positions[pi].y, sizes[pi].x , sizes[pi].y);
+//                }
+//            }
+            
+                    
+            if (recordedFrame > scene0)
+                {
+                    float picFact = stepSize/maxStep ;
+                    float bereich = (50 * (int)maxStep/stepSize);
+                    // fractalMovie.draw( i,  j, fractWidth, stepSize);
+                    
+                    for (int pi = positions.size()-1; pi >= 0; pi--)
+                    {
+                        if(pi<positions.size()-1){
+                            ofSetColor(0, 200*picFact-pi);
+                            ofSetLineWidth(6);
+                            ofDrawLine(positions[pi].x+(picFact*sizes[pi].x/2), positions[pi].y+(picFact*sizes[pi].y/2), positions[pi+1].x+(picFact*sizes[pi+1].x/2), positions[pi+1].y+(picFact*sizes[pi+1].y/2));
+                        }
+                    }
+                    for (int pi = positions.size()-1; pi >= 0; pi--)
+                    {
+           
+                        ofColor fractColor = pixels.getColor(positions[pi].x, positions[pi].y);
+                        fractColor += 100;
+                        
+                        ofSetColor(fractColor);
+                        
+                        int tmpWidth = sizes[pi].x * picFact;
+                        int tmpHeight = sizes[pi].y * picFact;
+                        
+                        if(tmpWidth < 14){tmpWidth = 14;}
+                        if(tmpHeight < 8){tmpWidth = 8;}
+                        
+                        fractalMovie.draw( positions[pi].x , positions[pi].y , sizes[pi].x * picFact , sizes[pi].y * picFact );
+                        //fractalMovie.draw( positions[pi].x, positions[pi].y, sizes[pi].x  , sizes[pi].y  );
 
+                    }
+                }
+        }
     }
     
     recordFbo.end();
@@ -267,7 +370,7 @@ void ofApp::draw(){
     }
     
     /** END Recording **/
-    if(recordedFrame - vidRecorder.getVideoQueueSize() > scene3 && !bEnd ){
+    if(recordedFrame - vidRecorder.getVideoQueueSize() > scene3 && !bEnd  && !bPause){
         keyReleased('r');
         bEnd = true;
         bPause = true;
