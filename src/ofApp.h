@@ -34,10 +34,15 @@ class ofApp : public ofBaseApp{
     ofVideoPlayer   targetMovie;
     
     int stepSize = 1;
+    int fractWidth;
     float stepFloat;
     float maxStep;
     float minStep;
     bool useVid = false;
+    
+    float vidRatio;
+    int vidWidth;
+    int vidHeight;
     
     vector <ofVec2f> positions;
     vector <ofVec2f> sizes;
