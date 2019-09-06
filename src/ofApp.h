@@ -40,6 +40,7 @@ class ofApp : public ofBaseApp{
     float minStep;
     bool useVid = false;
     
+    int repetitions = 1;
     int growing = 20;
     ofVec2f center;
     

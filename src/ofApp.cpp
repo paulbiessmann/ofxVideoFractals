@@ -35,7 +35,7 @@ void ofApp::setup(){
     fractalMovie.setPaused(true);
     
     maxStep = 520; //520
-    minStep = 70;
+    minStep = 30;
     stepSize = maxStep + 1;
     stepFloat = stepSize;
     fractWidth = maxStep;
@@ -117,28 +117,31 @@ void ofApp::update(){
         }
         
         
-        if(recordedFrame > scene1 && (int)recordedFrame % 5 == 0){
-            growing--;
+        if(recordedFrame > scene1 + 100 && (int)recordedFrame % 10 == 0){
             
-            if(growing<2){growing = 1;}
+            repetitions++;
             
             
         }
-        if(recordedFrame > scene1 && recordedFrame < scene3 && (int)recordedFrame % 3 == 0){
+        if(recordedFrame > scene1 && recordedFrame < scene3 && (int)recordedFrame % 2 == 0){
             
-            int repetitions = 1;
-            if(recordedFrame > scene3/4){
-                repetitions = 10;
+//            repetitions = 1;
+//            if(recordedFrame > scene3/8){
+//                repetitions = 5;
+//            }
+            if(recordedFrame > scene2/2){
+                repetitions = 130;
             }
-            if(recordedFrame > scene3/2){
-                repetitions = 30;
-            }
-            if(recordedFrame > scene2){
-                repetitions = 1;
-            }
+//            if(recordedFrame > scene2){
+//                repetitions = 1;
+//            }
+            
+            if(repetitions > 130){repetitions = 130;}
+            
             for(int i=0; i<repetitions; i++){
-                int posX = ofRandom(0, fullWidth - 100);
-                int posY = ofRandom(0, fullHeight - 100);
+                
+                int posX = ofRandom(0, fullWidth +50);
+                int posY = ofRandom(0, fullHeight +50);
                 
                 posX = center.x - (posX - center.x);
                 posY = center.y - (posY - center.y);
@@ -154,7 +157,13 @@ void ofApp::update(){
                 int randWidth = ofRandom(300, 800);
                 int randHeight = randWidth / vidRatio;
                 sizes.push_back(ofVec2f(randWidth, randHeight));
+                
+                if(positions.size() > 50000){
+                    positions.erase(positions.begin());
+                    sizes.erase(sizes.begin());
+                }
             }
+            cout << "size: " << positions.size() << "\n";
             
         }
         
@@ -162,7 +171,7 @@ void ofApp::update(){
         if(recordedFrame > scene1 && recordedFrame < scene2 ){
             for(int i=0; i<positions.size(); i++){
                 float dirX =  (center.x - positions[i].x )  * 0.001;
-                float dirY =  (center.y - positions[i].y )  * 0.001;
+                float dirY =  (center.y - positions[i].y )  * 0.001; //0.003
                 
                 positions[i].x += dirX;
                 positions[i].y += dirY;
@@ -243,7 +252,7 @@ void ofApp::draw(){
             else{
                 if(recordedFrame <= scene1){
                     for (int pi=0; pi< positions.size(); pi++){
-                        
+                        ofSetColor(255);
                         fractalMovie.draw( positions[pi].x, positions[pi].y, sizes[pi].x , sizes[pi].y);
                     }
                 }
@@ -253,7 +262,7 @@ void ofApp::draw(){
                         
                         ofColor fractColor ;
                         fractColor = pixels.getColor(i, j);
-                        fractColor += 100;
+                        fractColor += 130;
 
                         ofSetColor(fractColor);
 
@@ -334,7 +343,7 @@ void ofApp::draw(){
                     {
            
                         ofColor fractColor = pixels.getColor(positions[pi].x, positions[pi].y);
-                        fractColor += 100;
+                        fractColor += 80; //100
                         
                         ofSetColor(fractColor);
                         
