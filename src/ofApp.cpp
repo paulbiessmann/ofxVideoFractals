@@ -110,10 +110,30 @@ void ofApp::update(){
         targetMovie.nextFrame();
         targetMovie.update();
         
-        if(recordedFrame > scene1 && recordedFrame < scene2 && (int)recordedFrame % 1 == 0){
-            stepFloat *=   0.995;
-            
-            //stepFloat -= 5;
+        if(recordedFrame > scene1 && recordedFrame < scene2 && (int)recordedFrame % 1 == 0 && (int)recordedFrame > 100){
+            //stepFloat *=   0.995;
+            if(stepFloat > 800){
+                stepFloat -= 5;
+            }
+            else if(stepFloat > 500 && stepFloat <= 800){
+                stepFloat -= 4;
+            }
+            else if(stepFloat > 400 && stepFloat <= 500){
+                stepFloat -= 3;
+            }
+            else if(stepFloat > 300 && stepFloat <= 400){
+                stepFloat -= 2;
+            }
+            else if(stepFloat > 80 && stepFloat <= 300){
+                stepFloat -= 1;
+            }
+            else if(stepFloat > 10 && stepFloat <= 80 && (int)recordedFrame % 1 == 0){
+               // bUseFullVideo = true;
+                stepFloat -= 1;
+            }
+            if(recordedFrame > 300 && stepFloat <= 50 && (int)recordedFrame % 10 == 0){
+                stepFloat -= 1;
+            }
             
             if(stepFloat < minStep){ stepFloat=minStep;}
             
@@ -126,15 +146,15 @@ void ofApp::update(){
             
             
         }
-        if(recordedFrame > scene1 && recordedFrame < scene2 && (int)recordedFrame % 5 == 0  && positions.size() < 600){
+        if(recordedFrame > scene1 && recordedFrame < scene2 && (int)recordedFrame % 15 == 0  && positions.size() < 300 && stepSize>80) {
 
             if(recordedFrame > scene2/2){   repetitions = 10;  }
             if(repetitions > 10){  repetitions = 10;  }
 
             for(int i=0; i<repetitions; i++){
 
-                int posX = ofRandom(-50, fullWidth );
-                int posY = ofRandom(-50, fullHeight);
+                int posX = ofRandom(-50, fullWidth -100);
+                int posY = ofRandom(-50, fullHeight-100);
 
 //                posX = center.x - (posX - center.x);
 //                posY = center.y - (posY - center.y);
@@ -152,25 +172,24 @@ void ofApp::update(){
             cout << "size: " << positions.size() << "\n";
 
         }
-
-
-//        if(recordedFrame > scene1 && recordedFrame < scene2 ){
-//            for(int i=0; i<positions.size(); i++){
-//                float dirX =  (center.x + positions[i].x )  * 0.001;
-//                float dirY =  (center.y + positions[i].y )  * 0.001; //0.003
-//
-//                positions[i].x += dirX;
-//                positions[i].y += dirY;
-//
-//
-//            }
-//        }
-
         
-        if(recordedFrame > scene2){
-            
+
+
+
+        if(recordedFrame > scene1 && recordedFrame < 400 ){
+            for(int i=0; i<positions.size(); i++){
+                float dirX =  (center.x - positions[i].x )  * 0.003;
+                float dirY =  (center.y - positions[i].y )  * 0.003; //0.003
+
+                positions[i].x += dirX;
+                positions[i].y += dirY;
+
+
+            }
         }
+
         stepSize = (int)stepFloat;
+        
 
     }
     
@@ -217,38 +236,40 @@ void ofApp::draw(){
         
         
         if(1){    //      try something else
-            screenGrab.begin();
-            ofClear(255);
-            float picFact = 1;//maxStep/stepFloat  ;
-            float bereich = (50 * (int)maxStep/stepSize);
+            if(stepSize>30){
+                screenGrab.begin();
+                ofClear(255);
+                float picFact = 1;//maxStep/stepFloat  ;
+                float bereich = (50 * (int)maxStep/stepSize);
             
-            for (int pi = positions.size()-1; pi >= 0; pi--)
-            {
-                if(pi<positions.size()-1){
-                    ofSetColor(0, 200*picFact-pi);
-                    ofSetLineWidth(6);
-                    ofDrawLine(positions[pi].x+(picFact*sizes[pi].x/2), positions[pi].y+(picFact*sizes[pi].y/2), positions[pi+1].x+(picFact*sizes[pi+1].x/2), positions[pi+1].y+(picFact*sizes[pi+1].y/2));
+                for (int pi = positions.size()-1; pi >= 0; pi--)
+                {
+                    if(pi<positions.size()-1){
+                        ofSetColor(0, 200-pi);
+                        ofSetLineWidth(6);
+                        ofDrawLine(positions[pi].x+(picFact*sizes[pi].x/2), positions[pi].y+(picFact*sizes[pi].y/2), positions[pi+1].x+(picFact*sizes[pi+1].x/2), positions[pi+1].y+(picFact*sizes[pi+1].y/2));
+                    }
                 }
-            }
-            for (int pi = positions.size()-1; pi >= 0; pi--)
-            {
-                
-                ofColor fractColor = pixels.getColor(positions[pi].x, positions[pi].y);
-                fractColor += 100; //100
-                
-                ofSetColor(fractColor);
-                
-                int tmpWidth = sizes[pi].x * picFact;
-                int tmpHeight = sizes[pi].y * picFact;
-                
-                if(tmpWidth < 100){ tmpWidth = 100; }
-                if(tmpHeight < 56){ tmpWidth = 56;  }
-                
-                fractalMovie.draw( positions[pi].x , positions[pi].y , tmpWidth , tmpHeight );
-                
-            }
-            screenGrab.end();
+                for (int pi = positions.size()-1; pi >= 0; pi--)
+                {
+                    
+                    ofColor fractColor = pixels.getColor(positions[pi].x, positions[pi].y);
+                    fractColor += 100; //100
+                    
+                    ofSetColor(fractColor);
+                    
+                    int tmpWidth = sizes[pi].x * picFact;
+                    int tmpHeight = sizes[pi].y * picFact;
+                    
+                    if(tmpWidth < 100){ tmpWidth = 100; }
+                    if(tmpHeight < 56){ tmpWidth = 56;  }
+                    
+                    fractalMovie.draw( positions[pi].x , positions[pi].y , tmpWidth , tmpHeight );
+                    
+                }
+                screenGrab.end();
            // screenGrab.draw( 0,0);
+            }
         
             if ( stepSize < 8 ){
                 ofSetColor(255);
@@ -275,7 +296,12 @@ void ofApp::draw(){
                         {
                             float picFact = stepSize/maxStep;
                             float bereich = (50 * (int)maxStep/stepSize);
-                            screenGrab.draw( i,  j, fractWidth*1, stepSize*1);
+                            if(!bUseFullVideo){
+                                screenGrab.draw( i-4,  j-4, fractWidth*1, stepSize*1);
+                            }
+                            else{
+                                targetMovie.draw( i-4,  j-4, fractWidth, stepSize);
+                            }
                         }
                     }
                 }

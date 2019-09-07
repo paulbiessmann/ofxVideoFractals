@@ -32,6 +32,7 @@ class ofApp : public ofBaseApp{
     ofFbo   videoFbo;
     
     ofFbo   screenGrab;
+    bool    bUseFullVideo = false;
     
     ofVideoPlayer   targetMovie;
     
