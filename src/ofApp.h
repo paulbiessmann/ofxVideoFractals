@@ -31,6 +31,8 @@ class ofApp : public ofBaseApp{
     
     ofFbo   videoFbo;
     
+    ofFbo   screenGrab;
+    
     ofVideoPlayer   targetMovie;
     
     int stepSize = 1;
