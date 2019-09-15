@@ -33,6 +33,8 @@ class ofApp : public ofBaseApp{
     
     ofFbo   screenGrab;
     bool    bUseFullVideo = false;
+    bool    bWasSmall     = false;
+    bool    bWasBig       = false;
     
     ofVideoPlayer   targetMovie;
     
@@ -73,5 +75,7 @@ class ofApp : public ofBaseApp{
     int fullHeight  = 2160;
     
     float   relativeTimef;
+    
+    ofImage img;
 };
 

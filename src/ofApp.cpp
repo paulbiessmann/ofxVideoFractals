@@ -2,10 +2,12 @@
 
 float fps = 25;
 
-float scene0    = 0;    //frames, Sänger in Jumpsuit
-float scene1    = 25;//25   // zoomen beginnt
-float scene2    = 975;  // Zoomen ende, aber mit Fleisch
-float scene3    = 1275; // Schnittfleisch
+float scene0    = 11110; //0;    //frames, Sänger in Jumpsuit  775
+float scene1    = 111125;//25;//25   // zoomen beginnt
+float scene2    = 1111975;//975;  // Zoomen ende, aber mit Fleisch; ab 775 video
+float scene3    = 11111275;//1275; // Schnittfleisch
+
+float sceneBefore = 750; // video für oszillation
 
 float vidPart   = 500;  //frames in one vid till pause
 
@@ -34,8 +36,10 @@ void ofApp::setup(){
     fractalMovie.play();
     fractalMovie.setPaused(true);
     
+    img.load("Endbild_Silhoutte.png");
+    
     maxStep = fullHeight; //520
-    minStep = 9; //30
+    minStep = 9; //9 //30
     stepSize = maxStep + 1;
     stepFloat = stepSize;
     fractWidth = maxStep;
@@ -57,33 +61,35 @@ void ofApp::setup(){
     positions.resize(8);
     sizes.resize(8);
     
-    positions[0] = ofVec2f(1369, 100 );
-    positions[1] = ofVec2f(1279, 576 );
-    positions[2] = ofVec2f(1113, 997 );
-    positions[3] = ofVec2f(1223, 1268);
-    positions[4] = ofVec2f(-304, 1096);
-    positions[5] = ofVec2f(2039, 1105);
-    positions[6] = ofVec2f(2687, 527);
-    positions[7] = ofVec2f(2893, 1229);
     
     // sizes: y right - y left
     float ratio = fractalMovie.getHeight() / fractalMovie.getWidth() ;
-    sizes[0] = ofVec2f(512, 512*ratio);
-    sizes[1] = ofVec2f(192, 192*ratio);
-    sizes[2] = ofVec2f(210, 210*ratio);
-    sizes[3] = ofVec2f(267, 267*ratio);
-    sizes[4] = ofVec2f(545, 545*ratio);
-    sizes[5] = ofVec2f(208, 208*ratio);
-    sizes[6] = ofVec2f(464, 464*ratio);
-    sizes[7] = ofVec2f(526, 526*ratio);
+    sizes[0] = ofVec2f(513*2.2, 513*ratio*2.2);
+    sizes[1] = ofVec2f(476*2.4, 476*ratio*2.4);
+    sizes[2] = ofVec2f(191*2.2, 191*ratio*2.2);
+    sizes[3] = ofVec2f(225*2.5, 225*ratio*2.5);
+    sizes[4] = ofVec2f(274*2.4, 274*ratio*2.4);
+    sizes[5] = ofVec2f(544*2.3, 544*ratio*2.3);
+    sizes[6] = ofVec2f(218*2.2, 218*ratio*2.2);
+    sizes[7] = ofVec2f(527*2.4, 527*ratio*2.4);
+    
+    positions[0] = ofVec2f(1357, 155+10 ) - sizes[0]/4.9;
+    positions[1] = ofVec2f(2644, 561) - sizes[1]/4.8; //
+    positions[2] = ofVec2f(1280, 610 )- sizes[2]/4.8;
+    positions[3] = ofVec2f(1095, 1027)- sizes[3]/4.8;
+    positions[4] = ofVec2f(1206, 1294)- sizes[4]/4.8;
+    positions[5] = ofVec2f(-323, 1140)- sizes[5]/4.8;
+    positions[6] = ofVec2f(2295, 1139)- sizes[6]/4.8;
+    positions[7] = ofVec2f(2863, 1279)- sizes[7]/4.8;
+
     
     /************ Video Record *********/
     recordedFrame = 0;
     ofSetFrameRate((int) fps);
     ofSetLogLevel(OF_LOG_VERBOSE);
-    fileName = "CamFractal_v3";
-    fileExt = ".mov";
-    vidRecorder.setVideoCodec("prores");
+    fileName = "CamFractal_v4_osc";
+    fileExt = ".hap";
+    vidRecorder.setVideoCodec("hap");
     vidRecorder.setVideoBitrate("2000k");
     ofAddListener(vidRecorder.outputFileCompleteEvent, this, &ofApp::recordingComplete);
     recordFbo.allocate(ofGetWidth(), ofGetHeight(), GL_RGB);
@@ -95,6 +101,7 @@ void ofApp::setup(){
     bPause = false;
     
     useVid = false; //should be renamed
+
 
 }
 
@@ -109,6 +116,10 @@ void ofApp::update(){
         
         targetMovie.nextFrame();
         targetMovie.update();
+        
+        if(recordedFrame > 775 && recordedFrame < 780){
+           bUseFullVideo = true;
+        }
         
         if(recordedFrame > scene1 && recordedFrame < scene2 && (int)recordedFrame % 1 == 0 && (int)recordedFrame > 100){
             //stepFloat *=   0.995;
@@ -131,11 +142,13 @@ void ofApp::update(){
                // bUseFullVideo = true;
                 stepFloat -= 1;
             }
-            if(recordedFrame > 300 && stepFloat <= 50 && (int)recordedFrame % 10 == 0){
+            if(recordedFrame > 300 && stepFloat <= 50 && (int)recordedFrame % 15 == 0  ){
                 stepFloat -= 1;
             }
             
-            if(stepFloat < minStep){ stepFloat=minStep;}
+            if(stepFloat < minStep){
+                stepFloat=minStep;
+            }
             
         }
         
@@ -178,8 +191,8 @@ void ofApp::update(){
 
         if(recordedFrame > scene1 && recordedFrame < 400 ){
             for(int i=0; i<positions.size(); i++){
-                float dirX =  (center.x - positions[i].x )  * 0.003;
-                float dirY =  (center.y - positions[i].y )  * 0.003; //0.003
+                float dirX =  (center.x - positions[i].x )  * 0.002;
+                float dirY =  (center.y - positions[i].y )  * 0.002; //0.003
 
                 positions[i].x += dirX;
                 positions[i].y += dirY;
@@ -214,11 +227,12 @@ void ofApp::draw(){
     strm << "fps: " << ofGetFrameRate();
     ofSetWindowTitle(strm.str());
 
-
+    
     recordFbo.begin();
     ofClear(255,255,255,255);
     ofSetBackgroundColor(255,255,255,255);
 
+   // img.draw(0,0, fullWidth, fullHeight);
 
 
     
@@ -244,10 +258,39 @@ void ofApp::draw(){
             
                 for (int pi = positions.size()-1; pi >= 0; pi--)
                 {
-                    if(pi<positions.size()-1){
+                    
+                    if(pi == 0){
+                        ofSetColor(20, 180);
+                        ofSetLineWidth(60);
+                        ofDrawLine(positions[pi].x+(picFact*sizes[pi].x/2), positions[pi].y+(picFact*sizes[pi].y/2) + 25, positions[pi+1].x+(picFact*sizes[pi+1].x/2), positions[pi+1].y+(picFact*sizes[pi+1].y/2) + 25);
+                    }
+                    if(pi == 2){
+                        ofSetColor(20, 180);
+                        ofSetLineWidth(10);
+                        ofDrawLine(positions[pi].x+(picFact*sizes[pi].x/2) - 20, positions[pi].y+(picFact*sizes[pi].y/2), positions[pi+1].x+(picFact*sizes[pi+1].x/2) - 20, positions[pi+1].y+(picFact*sizes[pi+1].y/2));
+                    }
+                    if(pi == 3){
+                        ofSetColor(20, 180);
+                        ofSetLineWidth(6);
+                        ofDrawLine(positions[pi].x+(picFact*sizes[pi].x/2) - 20, positions[pi].y+(picFact*sizes[pi].y/2) + 20, positions[pi+1].x+(picFact*sizes[pi+1].x/2) - 20, positions[pi+1].y+(picFact*sizes[pi+1].y/2) +20);
+                    }
+                    if(pi == 5){
+                        ofSetColor(30, 180);
+                        ofSetLineWidth(70);
+                        ofDrawLine(positions[pi].x+(picFact*sizes[pi].x/2) - 20, positions[pi].y+(picFact*sizes[pi].y/2) - 17, positions[0].x+(picFact*sizes[0].x/2) - 20, positions[0].y+(picFact*sizes[0].y/2) - 10);
+                    }
+                    if(pi == 7){
+                        ofSetColor(30, 180);
+                        ofSetLineWidth(150);
+                        ofDrawLine(positions[pi].x+(picFact*sizes[pi].x/2) - 63, positions[pi].y+(picFact*sizes[pi].y/2) - 17, positions[1].x+(picFact*sizes[1].x/2) -63, positions[1].y+(picFact*sizes[1].y/2) - 10);
+                        ofDrawLine(positions[pi].x+(picFact*sizes[pi].x/2) - 60, positions[pi].y+(picFact*sizes[pi].y/2) - 0, positions[0].x+(picFact*sizes[0].x/2) -60, positions[0].y+(picFact*sizes[0].y/2) - 0);
+                    }
+                    
+                    if(pi > 8 && pi<positions.size()-2){
                         ofSetColor(0, 200-pi);
                         ofSetLineWidth(6);
                         ofDrawLine(positions[pi].x+(picFact*sizes[pi].x/2), positions[pi].y+(picFact*sizes[pi].y/2), positions[pi+1].x+(picFact*sizes[pi+1].x/2), positions[pi+1].y+(picFact*sizes[pi+1].y/2));
+                        ofDrawLine(positions[pi].x+(picFact*sizes[pi].x/2), positions[pi].y+(picFact*sizes[pi].y/2), positions[pi+2].x+(picFact*sizes[pi+2].x/2), positions[pi+2].y+(picFact*sizes[pi+2].y/2));
                     }
                 }
                 for (int pi = positions.size()-1; pi >= 0; pi--)
@@ -360,7 +403,6 @@ void ofApp::draw(){
         bPause = true;
         keyReleased('r');
     }
-
     
     /* recording fortsetzen */
     if(vidRecorder.getVideoQueueSize() < 5 && bPause && recordedFrame < scene3){
