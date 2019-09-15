@@ -2,10 +2,10 @@
 
 float fps = 25;
 
-float scene0    = 11110; //0;    //frames, Sänger in Jumpsuit  775
-float scene1    = 111125;//25;//25   // zoomen beginnt
-float scene2    = 1111975;//975;  // Zoomen ende, aber mit Fleisch; ab 775 video
-float scene3    = 11111275;//1275; // Schnittfleisch
+float scene0    = 0; //0;    //frames, Sänger in Jumpsuit  775
+float scene1    = 25;//25;//25   // zoomen beginnt
+float scene2    = 975;//975;  // Zoomen ende, aber mit Fleisch; ab 775 video
+float scene3    = 1275;//1275; // Schnittfleisch
 
 float sceneBefore = 750; // video für oszillation
 
@@ -87,9 +87,9 @@ void ofApp::setup(){
     recordedFrame = 0;
     ofSetFrameRate((int) fps);
     ofSetLogLevel(OF_LOG_VERBOSE);
-    fileName = "CamFractal_v4_osc";
-    fileExt = ".hap";
-    vidRecorder.setVideoCodec("hap");
+    fileName = "CamFractal_v5";
+    fileExt = ".mov";
+    vidRecorder.setVideoCodec("prores");
     vidRecorder.setVideoBitrate("2000k");
     ofAddListener(vidRecorder.outputFileCompleteEvent, this, &ofApp::recordingComplete);
     recordFbo.allocate(ofGetWidth(), ofGetHeight(), GL_RGB);
